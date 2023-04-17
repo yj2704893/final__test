@@ -2,38 +2,34 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
+import java.sql.*;
 
 public class LibraryGUI extends JFrame implements ActionListener {
 
-    private JTextField nameField, emailField, idField, collegeField, bookNameField, bookNumberField, bookAuthorField, bookCategoryField, bookStatusField;
-    private JTextArea outputArea;
-
-    private JButton addStudentButton, addBookButton, updateStudentButton, updateBookButton,
-            deleteStudentButton, deleteBookButton, listStudentButton;
-
-    private Staff staff;
+    private JButton addBookButton, updateBookButton, deleteBookButton, searchBookButton;
+    private JButton addStudentButton, updateStudentButton, deleteStudentButton;
+    private JTextField bookNameField, bookNumField, bookCategoryField, bookStatusField, bookAuthorField;
+    private JTextField studentNameField, studentEmailField, studentIDField, studentCollegeField;
+    private static String DriverName = "org.sqlite.JDBC";
 
     public LibraryGUI() {
-        setTitle("Library Management System");
+        super("Staff Management");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        staff = new Staff();
 
         JPanel studentPanel = new JPanel(new GridLayout(0, 2));
         studentPanel.setBorder(BorderFactory.createTitledBorder("Student Information"));
         studentPanel.add(new JLabel("Name:"));
-        nameField = new JTextField();
-        studentPanel.add(nameField);
+        studentNameField = new JTextField();
+        studentPanel.add(studentNameField);
         studentPanel.add(new JLabel("Email:"));
-        emailField = new JTextField();
-        studentPanel.add(emailField);
+        studentEmailField = new JTextField();
+        studentPanel.add(studentEmailField);
         studentPanel.add(new JLabel("ID:"));
-        idField = new JTextField();
-        studentPanel.add(idField);
+        studentIDField = new JTextField();
+        studentPanel.add(studentIDField);
         studentPanel.add(new JLabel("College:"));
-        collegeField = new JTextField();
-        studentPanel.add(collegeField);
+        studentCollegeField = new JTextField();
+        studentPanel.add(studentCollegeField);
         addStudentButton = new JButton("Add Student");
         addStudentButton.addActionListener(this);
         studentPanel.add(addStudentButton);
@@ -43,18 +39,16 @@ public class LibraryGUI extends JFrame implements ActionListener {
         deleteStudentButton = new JButton("Delete Student");
         deleteStudentButton.addActionListener(this);
         studentPanel.add(deleteStudentButton);
-        listStudentButton = new JButton("List All Student");
-        listStudentButton.addActionListener(this);
-        studentPanel.add(listStudentButton);
+
 
         JPanel bookPanel = new JPanel(new GridLayout(0, 2));
         bookPanel.setBorder(BorderFactory.createTitledBorder("Book Information"));
-        bookPanel.add(new JLabel("Name:"));
+        bookPanel.add(new JLabel("Book name:"));
         bookNameField = new JTextField();
         bookPanel.add(bookNameField);
         bookPanel.add(new JLabel("Number:"));
-        bookNumberField = new JTextField();
-        bookPanel.add(bookNumberField);
+        bookNumField = new JTextField();
+        bookPanel.add(bookNumField);
         bookPanel.add(new JLabel("Author:"));
         bookAuthorField = new JTextField();
         bookPanel.add(bookAuthorField);
@@ -74,88 +68,154 @@ public class LibraryGUI extends JFrame implements ActionListener {
         deleteBookButton.addActionListener(this);
         bookPanel.add(deleteBookButton);
 
-        JPanel outputPanel = new JPanel(new BorderLayout());
-        outputPanel.setBorder(BorderFactory.createTitledBorder("Output"));
-        outputArea = new JTextArea(10, 50);
-        outputPanel.add(new JScrollPane(outputArea), BorderLayout.CENTER);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(studentPanel, BorderLayout.NORTH);
-        mainPanel.add(bookPanel, BorderLayout.CENTER);
-        mainPanel.add(outputPanel, BorderLayout.SOUTH);
+        mainPanel.add(bookPanel, BorderLayout.SOUTH);
 
         setContentPane(mainPanel);
         pack();
+        setSize(700, 450);
         setVisible(true);
     }
 
     public void actionPerformed(ActionEvent e) {
-        Object source = e.getSource();
-        if (source == addStudentButton) {
-            String name = nameField.getText();
-            String email = emailField.getText();
-            String id = idField.getText();
-            String college = collegeField.getText();
-            Student newStudent = new Student(name, email, id, college);
-            staff.addStudent(newStudent);
-            outputArea.setText("Student added successfully!");
-        } else if (source == updateStudentButton) {
-            String name = nameField.getText();
-            String email = emailField.getText();
-            String id = idField.getText();
-            String college = collegeField.getText();
-            Student studentToUpdate = staff.findStudentByID(id);
-            if (studentToUpdate != null) {
-                staff.updateStudent(studentToUpdate, name, email, id, college);
-                outputArea.setText("Student updated successfully!");
-            } else {
-                outputArea.setText("Student not found.");
-            }
-        } else if (source == deleteStudentButton) {
-            String id = idField.getText();
-            Student studentToDelete = staff.findStudentByID(id);
-            if (studentToDelete != null) {
-                staff.deleteStudent(studentToDelete);
-                outputArea.setText("Student deleted successfully!");
-            } else {
-                outputArea.setText("Student not found.");
+
+        // Get the book information entered by the user
+        String bookName = bookNameField.getText();
+        String bookNum = bookNumField.getText();
+        String bookCategory = bookCategoryField.getText();
+        String bookStatus = bookStatusField.getText();
+        String bookAuthor = bookAuthorField.getText();
+
+        // Get the student information entered by the user
+        String studentName = studentNameField.getText();
+        String studentEmail = studentEmailField.getText();
+        String studentID = studentIDField.getText();
+        String studentCollege = studentCollegeField.getText();
+
+        // Add a book to the database if the user clicked the Add Book button
+        if (e.getSource() == addBookButton) {
+            try {
+                Class.forName(DriverName);
+                Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/jiangyuting/Downloads/final__test/LibraryInformation.db");
+                Statement statement = connection.createStatement();
+                int rowsInserted = statement.executeUpdate("insert into BookInformation(name, number, category, status, author) values('" + bookName + "', '" + bookNum + "', '" + bookCategory + "', '" + bookStatus + "','" + bookAuthor + "')");
+                if (rowsInserted > 0) {
+                    JOptionPane.showMessageDialog(null, "Book added successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Book could not be added.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                connection.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
             }
         }
-        if (source == addBookButton) {
-            String bookName = bookNameField.getText();
-            String bookNumber = bookNumberField.getText();
-            String bookAuthor = bookAuthorField.getText();
-            String bookCategory = bookCategoryField.getText();
-            String bookStatus = bookStatusField.getText();
-            Book newBook = new Book(bookName, bookNumber, bookAuthor, bookCategory, bookStatus);
-            staff.addBook(newBook);
-            outputArea.setText("Book added successfully!");
-        } else if (source == updateBookButton) {
-            String bookName = bookNameField.getText();
-            String bookNumber = bookNumberField.getText();
-            String bookAuthor = bookAuthorField.getText();
-            String bookCategory = bookCategoryField.getText();
-            String bookStatus = bookStatusField.getText();
-            Book bookToUpdate = staff.findBookByNumber(bookNumber);
-            if (bookToUpdate != null) {
-                staff.updateBook(bookToUpdate, bookName, bookNumber, bookAuthor, bookCategory, bookStatus);
-                outputArea.setText("Book updated successfully!");
-            } else {
-                outputArea.setText("Book not found.");
-            }
-        } else if (source == deleteBookButton) {
-            String bookNumber = bookNumberField.getText();
-            Book bookToDelete = staff.findBookByNumber(bookNumber);
-            if (bookToDelete != null) {
-                staff.deleteBook(bookToDelete);
-                outputArea.setText("Book deleted successfully!");
-            } else {
-                outputArea.setText("Book not found.");
-            }
 
+        // Update a book to the database if the user clicked the Add Book button
+        if (e.getSource() == updateBookButton) {
+            try {
+                Class.forName(DriverName);
+                Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/jiangyuting/Downloads/final__test/LibraryInformation.db");
+                PreparedStatement preparedStatement = connection.prepareStatement("UPDATE BookInformation SET name=?, number=?, author=? WHERE category=? AND status=?");
+                preparedStatement.setString(1, bookName);
+                preparedStatement.setString(2, bookNum);
+                preparedStatement.setString(3, bookAuthor);
+                preparedStatement.setString(4, bookCategory);
+                preparedStatement.setString(5, bookStatus);
 
+                int rowsUpdated = preparedStatement.executeUpdate();
+                if (rowsUpdated > 0) {
+                    JOptionPane.showMessageDialog(null, "Book updated successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Book could not be updated.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                connection.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
         }
 
+        // Delete a book to the database if the user clicked the Add Book button
+        if (e.getSource() == deleteBookButton) {
+            try {
+                Class.forName(DriverName);
+                Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/jiangyuting/Downloads/final__test/LibraryInformation.db");
+                PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM BookInformation WHERE number=? AND name=?");
+                preparedStatement.setString(1, bookNum);
+                preparedStatement.setString(2, bookName);
+                int rowsDeleted = preparedStatement.executeUpdate();
+                if (rowsDeleted > 0) {
+                    JOptionPane.showMessageDialog(null, "Book deleted successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Book could not be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                connection.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        // Add a student to the database if the user clicked the Add student button
+        if (e.getSource() == addStudentButton) {
+            try {
+                Class.forName(DriverName);
+                Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/jiangyuting/Downloads/final__test/LibraryInformation.db");
+                Statement statement = connection.createStatement();
+                int rowsInserted = statement.executeUpdate("insert into StudentInofrmation(name, id, email, college) values('" + studentName + "', '" + studentID + "', '" + studentEmail + "', '" + studentCollege + "')");
+                if (rowsInserted > 0) {
+                    JOptionPane.showMessageDialog(null, "Student added successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Student could not be added.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                connection.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        // Update a student to the database if the user clicked the Add student button
+        if (e.getSource() == updateStudentButton) {
+            try {
+                Class.forName(DriverName);
+                Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/jiangyuting/Downloads/final__test/LibraryInformation.db");
+                PreparedStatement preparedStatement = connection.prepareStatement("UPDATE StudentInofrmation SET name=?, id=? WHERE email=? AND college=?");
+                preparedStatement.setString(1, studentName);
+                preparedStatement.setString(2, studentID);
+                preparedStatement.setString(3, studentEmail);
+                preparedStatement.setString(4, studentCollege);
+
+                int rowsUpdated = preparedStatement.executeUpdate();
+                if (rowsUpdated > 0) {
+                    JOptionPane.showMessageDialog(null, "Student updated successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Student could not be updated.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                connection.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        // Delete a student to the database if the user clicked the Add student button
+        if (e.getSource() == deleteStudentButton) {
+            try {
+                Class.forName(DriverName);
+                Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/jiangyuting/Downloads/final__test/LibraryInformation.db");
+                PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM StudentInofrmation WHERE id=? AND name=?");
+                preparedStatement.setString(1, studentID);
+                preparedStatement.setString(2, studentName);
+                int rowsDeleted = preparedStatement.executeUpdate();
+                if (rowsDeleted > 0) {
+                    JOptionPane.showMessageDialog(null, "Student deleted successfully.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Student could not be deleted.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+                connection.close();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
     }
-}
 
+}

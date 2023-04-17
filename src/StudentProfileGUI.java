@@ -5,43 +5,44 @@ import java.awt.event.ActionListener;
 
 public class StudentProfileGUI extends JFrame implements ActionListener {
     private JButton searchButton;
+
     public StudentProfileGUI(Student student) {
         // Set up the JFrame
         super("Student Profile");
-        setSize(400, 200);
+        setSize(500, 250);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // Create the components
         JLabel nameLabel = new JLabel("Name:");
-        JLabel emailLabel = new JLabel("Email:");
         JLabel idLabel = new JLabel("Student ID:");
+        JLabel emailLabel = new JLabel("Email:");
         JLabel collegeLabel = new JLabel("College:");
         JLabel nameValueLabel = new JLabel(student.getName());
-        JLabel emailValueLabel = new JLabel(student.getEmail());
         JLabel idValueLabel = new JLabel(student.getStudentID());
+        JLabel emailValueLabel = new JLabel(student.getEmail());
         JLabel collegeValueLabel = new JLabel(student.getCollege());
         searchButton = new JButton("Search Book");
 
         // Create the layout
-        JPanel panel = new JPanel(new GridLayout(4, 2));
+        JPanel panel = new JPanel(new GridLayout(5, 2));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         panel.add(nameLabel);
         panel.add(nameValueLabel);
-        panel.add(emailLabel);
-        panel.add(emailValueLabel);
         panel.add(idLabel);
         panel.add(idValueLabel);
+        panel.add(emailLabel);
+        panel.add(emailValueLabel);
         panel.add(collegeLabel);
         panel.add(collegeValueLabel);
+        panel.add(new JPanel());
         panel.add(searchButton);
 
-        // Add the components to the JFrame
-        add(panel);
+        setLayout(new BorderLayout());
+        add(panel, BorderLayout.CENTER);
 
-        // Set the action listener for the 'Search' button
         searchButton.addActionListener(this);
 
-        // Show the JFrame
         setVisible(true);
     }
 

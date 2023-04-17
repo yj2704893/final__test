@@ -1,37 +1,57 @@
-import java.sql.*;
-import java.util.Scanner;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class Main {
-    private static String DriveName = "org.sqlite.JDBC";
-    public static void main(String[] args) {
-        System.out.println("coming out");
-        try {
-            Class.forName(DriveName);
-            Connection connection = DriverManager.getConnection("jdbc:sqlite:/Users/jiangyuting/Downloads/final__test/LibraryInformation.db");
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("select * from BookInformation");
-            while (resultSet.next()) {
-                System.out.println(resultSet.getString(1));
-            }
-            resultSet.close();
-            connection.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+public class Main extends JFrame implements ActionListener {
+    private JLabel titleLabel;
+    private JRadioButton staffRadioButton;
+    private JRadioButton studentRadioButton;
+    private JButton selectButton;
 
-        Scanner scanner = new Scanner(System.in);
+    public Main() {
+        super("User Selection");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        System.out.println("Enter 1 for Staff or 0 for Student:");
-        int userType = scanner.nextInt();
+        titleLabel = new JLabel("Select user type:");
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        add(titleLabel, BorderLayout.NORTH);
 
-        if (userType == 1) {
-            LibraryGUI gui = new LibraryGUI();
-        } else if (userType == 0) {
-            StudentLoginGUI guii = new StudentLoginGUI();
-        } else {
-            System.out.println("Invalid input!");
-        }
+        JPanel radioPanel = new JPanel(new GridLayout(2, 1));
+        staffRadioButton = new JRadioButton("Staff");
+        studentRadioButton = new JRadioButton("Student");
+        ButtonGroup radioButtonGroup = new ButtonGroup();
+        radioButtonGroup.add(staffRadioButton);
+        radioButtonGroup.add(studentRadioButton);
+        radioPanel.add(staffRadioButton);
+        radioPanel.add(studentRadioButton);
+        add(radioPanel, BorderLayout.CENTER);
+
+        selectButton = new JButton("Select");
+        selectButton.addActionListener(this);
+        add(selectButton, BorderLayout.SOUTH);
+
+        setLocationRelativeTo(null);
+        setVisible(true);
     }
 
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (staffRadioButton.isSelected()) {
+            LibraryGUI libraryGUI = new LibraryGUI();
+        } else if (studentRadioButton.isSelected()) {
+            StudentLoginGUI studentLoginGUI = new StudentLoginGUI();
+        } else {
+            JOptionPane.showMessageDialog(this, "Please select a user type.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        dispose();
+    }
+
+    public static void main(String[] args) {
+        new Main();
+    }
 
 }
